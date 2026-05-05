@@ -61,7 +61,7 @@ class OrderController extends Controller
         $order->load('items');
 
         return Inertia::render('Orders/Show', [
-            'order' => new OrderResource($order),
+            'order' => (new OrderResource($order))->resolve(),
         ]);
     }
 }

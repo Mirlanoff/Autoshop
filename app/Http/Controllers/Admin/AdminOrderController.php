@@ -37,7 +37,7 @@ class AdminOrderController extends Controller
         $order->load('items');
 
         return Inertia::render('Admin/Orders/Show', [
-            'order' => new OrderResource($order),
+            'order' => (new OrderResource($order))->resolve(),
         ]);
     }
 

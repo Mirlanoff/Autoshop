@@ -58,13 +58,14 @@ const logout = () => {
                             Мои заказы
                         </Link>
 
-                        <Link
-                            v-if="page.props.auth.user.role === 'admin'"
-                            href="/admin/orders"
-                            class="font-medium text-orange-600 hover:text-orange-800 transition-colors"
-                        >
-                            Админка
-                        </Link>
+                        <template v-if="page.props.auth.user.role === 'admin'">
+                            <Link href="/admin/orders" class="font-medium text-orange-600 hover:text-orange-800 transition-colors">
+                                Заказы (админ)
+                            </Link>
+                            <Link href="/admin/products" class="font-medium text-orange-600 hover:text-orange-800 transition-colors">
+                                Товары (админ)
+                            </Link>
+                        </template>
                     </template>
 
                     <Link href="/cart" class="relative group flex items-center gap-1">
@@ -120,7 +121,8 @@ const logout = () => {
 
                 <template v-if="page.props.auth?.user">
                     <Link href="/orders" class="block font-medium text-slate-600">Мои заказы</Link>
-                    <Link v-if="page.props.auth.user.role === 'admin'" href="/admin/orders" class="block font-medium text-orange-600">Админка</Link>
+                    <Link v-if="page.props.auth.user.role === 'admin'" href="/admin/orders" class="block font-medium text-orange-600">Заказы (админ)</Link>
+                    <Link v-if="page.props.auth.user.role === 'admin'" href="/admin/products" class="block font-medium text-orange-600">Товары (админ)</Link>
                     <Link href="/profile" class="block font-medium text-slate-600">Профиль</Link>
                     <button @click="logout" class="block text-red-500 font-medium">Выйти</button>
                 </template>

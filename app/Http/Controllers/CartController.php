@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Session;
 use Inertia\Inertia;
 use App\Models\Product;
 use App\Services\Cart\CartService;
@@ -39,9 +38,5 @@ class CartController extends Controller
         $cart->update($id, $request->quantity);
 
         return back();
-    }
-    public function clear(): void
-    {
-        Session::forget(self::KEY);
     }
 }

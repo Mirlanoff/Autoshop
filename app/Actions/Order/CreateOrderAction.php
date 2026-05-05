@@ -4,6 +4,8 @@ namespace App\Actions\Order;
 
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Product;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Services\Cart\CartService;
 use App\DTO\Order\CreateOrderDTO;
@@ -13,7 +15,6 @@ class CreateOrderAction
 {
     public function execute(CreateOrderDTO $dto, CartService $cartService): Order
     {
-        // 1. Создаем заказ в транзакции
         $order = DB::transaction(function () use ($dto, $cartService) {
             $cartItems = $cartService->get();
 
@@ -22,22 +23,28 @@ class CreateOrderAction
             }
 
             $order = Order::create([
+                'user_id' => Auth::id(),
                 'customer_name' => $dto->customerName,
-                'phone'         => $dto->phone,
-                'total'         => $cartService->total(),
-                'status'        => 'pending', // Хорошая практика: задать статус явно
+                'phone' => $dto->phone,
+                'total' => $cartService->total(),
+                'status' => Order::STATUS_PENDING,
+                'payment_method' => $dto->paymentMethod,
+                'payment_status' => $dto->paymentMethod === Order::PAYMENT_ONLINE
+                    ? Order::PAYMENT_STATUS_PENDING
+                    : Order::PAYMENT_STATUS_PAID,
             ]);
 
             foreach ($cartItems as $item) {
                 OrderItem::create([
-                    'order_id'   => $order->id,
+                    'order_id' => $order->id,
                     'product_id' => $item['product_id'],
-                    'name'       => $item['name'],
-                    'price'      => $item['price'],
-                    'quantity'   => $item['quantity'],
+                    'name' => $item['name'],
+                    'price' => $item['price'],
+                    'quantity' => $item['quantity'],
                 ]);
 
-                // Совет: Здесь можно добавить уменьшение остатков товара (stock)
+                Product::where('id', $item['product_id'])
+                    ->decrement('stock', $item['quantity']);
             }
 
             $cartService->clear();
@@ -45,8 +52,6 @@ class CreateOrderAction
             return $order;
         });
 
-        // 2. ОТПРАВЛЯЕМ УВЕДОМЛЕНИЕ (вне транзакции)
-        // Теперь, если транзакция прошла успешно, ставим задачу в очередь
         SendOrderNotificationJob::dispatch($order);
 
         return $order;

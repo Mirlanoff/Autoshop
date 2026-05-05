@@ -12,9 +12,6 @@ return new class extends Migration {
 
             $table->string('name');
             $table->string('slug')->unique();
-            $table->index('brand_id');
-            $table->index('category_id');
-            $table->index('price');
 
             $table->foreignId('brand_id')->constrained()->cascadeOnDelete();
             $table->foreignId('category_id')->constrained()->cascadeOnDelete();
@@ -23,6 +20,10 @@ return new class extends Migration {
             $table->unsignedInteger('stock')->default(0);
 
             $table->text('description')->nullable();
+
+            $table->index('brand_id');
+            $table->index('category_id');
+            $table->index('price');
 
             $table->timestamps();
         });

@@ -18,9 +18,11 @@ class OrderResource extends JsonResource
             'total' => (float) $this->total,
             'status' => $this->status,
 
+            'payment_method' => $this->payment_method,
+            'payment_status' => $this->payment_status,
+
             'created_at' => $this->created_at->format('d.m.Y H:i'),
 
-            // товары (только если загружены)
             'items' => $this->whenLoaded('items', function () {
                 return $this->items->map(fn ($item) => [
                     'id' => $item->id,

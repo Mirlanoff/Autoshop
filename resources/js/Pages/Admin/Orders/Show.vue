@@ -55,6 +55,23 @@ const updateStatus = (status) => {
                     <p class="text-xs uppercase tracking-wider text-gray-400 mb-1">Дата</p>
                     <p class="font-bold text-slate-800">{{ order.created_at }}</p>
                 </div>
+                <div>
+                    <p class="text-xs uppercase tracking-wider text-gray-400 mb-1">Способ оплаты</p>
+                    <p class="font-bold text-slate-800">{{ order.payment_method === 'online' ? 'Онлайн (Stripe)' : 'Наличные' }}</p>
+                </div>
+                <div>
+                    <p class="text-xs uppercase tracking-wider text-gray-400 mb-1">Статус оплаты</p>
+                    <span
+                        class="px-2 py-1 rounded-md text-xs font-bold uppercase"
+                        :class="{
+                            'bg-green-50 text-green-600': order.payment_status === 'paid',
+                            'bg-yellow-50 text-yellow-600': order.payment_status === 'pending',
+                            'bg-red-50 text-red-600': order.payment_status === 'failed'
+                        }"
+                    >
+                        {{ order.payment_status === 'paid' ? 'Оплачен' : order.payment_status === 'pending' ? 'Ожидает' : 'Ошибка' }}
+                    </span>
+                </div>
             </div>
         </div>
 

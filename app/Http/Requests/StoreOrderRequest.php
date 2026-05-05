@@ -11,6 +11,7 @@ class StoreOrderRequest extends FormRequest
         return [
             'customer_name' => ['required', 'string', 'min:2', 'max:255'],
             'phone' => ['required', 'string', 'min:6', 'max:20'],
+            'payment_method' => ['sometimes', 'string', 'in:cash,online'],
         ];
     }
 }

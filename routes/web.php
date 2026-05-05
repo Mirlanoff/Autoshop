@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AdminOrderController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -15,10 +16,8 @@ use Inertia\Inertia;
 |--------------------------------------------------------------------------
 */
 
-// Теперь ГЛАВНАЯ страница — это каталог товаров
 Route::get('/', [ProductController::class, 'index'])->name('products.index');
 
-// Группа маршрутов корзины
 Route::prefix('cart')->controller(CartController::class)->group(function () {
     Route::get('/', 'index')->name('cart.index');
     Route::post('/add', 'add')->name('cart.add');
@@ -29,21 +28,28 @@ Route::prefix('cart')->controller(CartController::class)->group(function () {
 /*
 
 |--------------------------------------------------------------------------
+| ОПЛАТА (Stripe callbacks)
+|--------------------------------------------------------------------------
+*/
+Route::get('/payment/success', [PaymentController::class, 'success'])->name('payment.success');
+Route::get('/payment/cancel', [PaymentController::class, 'cancel'])->name('payment.cancel');
+Route::post('/stripe/webhook', [PaymentController::class, 'webhook'])->name('stripe.webhook');
+
+/*
+
+|--------------------------------------------------------------------------
 | ЛИЧНЫЙ КАБИНЕТ (Только для авторизованных)
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {
 
-    // Оформление заказа
     Route::get('/checkout', [OrderController::class, 'create'])->name('checkout.create');
     Route::post('/checkout', [OrderController::class, 'store'])->name('checkout.store');
 
-    // Профиль (оставляем от Breeze)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Dashboard (можно оставить или убрать)
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');
     })->name('dashboard');
@@ -61,5 +67,4 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
 });
 
-// Стандартные маршруты авторизации Breeze (login, register, logout)
 require __DIR__.'/auth.php';

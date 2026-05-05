@@ -15,6 +15,18 @@ use App\Actions\Order\CreateOrderAction;
 
 class OrderController extends Controller
 {
+    public function myOrders(Request $request)
+    {
+        $orders = Order::where('user_id', $request->user()->id)
+            ->with('items')
+            ->latest()
+            ->paginate(10);
+
+        return Inertia::render('Orders/Index', [
+            'orders' => OrderResource::collection($orders),
+        ]);
+    }
+
     public function index(Request $request)
     {
         $filters = OrderFilterDTO::fromRequest($request);

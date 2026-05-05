@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
@@ -19,6 +20,7 @@ class Order extends Model
     const PAYMENT_STATUS_FAILED = 'failed';
 
     protected $fillable = [
+        'user_id',
         'customer_name',
         'phone',
         'total',
@@ -27,6 +29,11 @@ class Order extends Model
         'payment_status',
         'stripe_session_id',
     ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function items(): HasMany
     {

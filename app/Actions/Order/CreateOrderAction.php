@@ -5,6 +5,7 @@ namespace App\Actions\Order;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Services\Cart\CartService;
 use App\DTO\Order\CreateOrderDTO;
@@ -22,6 +23,7 @@ class CreateOrderAction
             }
 
             $order = Order::create([
+                'user_id' => Auth::id(),
                 'customer_name' => $dto->customerName,
                 'phone' => $dto->phone,
                 'total' => $cartService->total(),

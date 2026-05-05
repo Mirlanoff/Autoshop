@@ -3,6 +3,7 @@
 namespace App\Actions\Order;
 
 use App\Models\Order;
+use App\Notifications\OrderStatusChangedNotification;
 
 class UpdateOrderStatusAction
 {
@@ -19,5 +20,9 @@ class UpdateOrderStatusAction
         $order->update([
             'status' => $status,
         ]);
+
+        if ($order->user) {
+            $order->user->notify(new OrderStatusChangedNotification($order, $status));
+        }
     }
 }

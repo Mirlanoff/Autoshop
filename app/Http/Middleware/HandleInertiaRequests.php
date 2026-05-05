@@ -27,6 +27,9 @@ class HandleInertiaRequests extends Middleware
                 'error' => fn () => $request->session()->get('error'),
             ],
             'cartCount' => fn () => app(CartService::class)->count(),
+            'wishlistIds' => fn () => $request->user()
+                ? $request->user()->wishlist()->pluck('product_id')->toArray()
+                : [],
         ];
     }
 }

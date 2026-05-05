@@ -1,5 +1,5 @@
 <script setup>
-import { router } from '@inertiajs/vue3'
+import { router, usePage, Link } from '@inertiajs/vue3'
 import { reactive, watch, ref } from 'vue'
 import debounce from 'lodash/debounce'
 import AppLayout from '@/Layouts/AppLayout.vue'
@@ -17,6 +17,14 @@ const props = defineProps({
 // UI состояния
 const isLoading = ref(false)
 const addingId = ref(null)
+
+const isInWishlist = (id) => (page.props.wishlistIds || []).includes(id)
+
+const toggleWishlist = (id) => {
+    router.post('/wishlist/toggle', { product_id: id }, { preserveScroll: true })
+}
+
+const page = usePage()
 
 // Фильтры
 const form = reactive({
@@ -95,10 +103,22 @@ const addToCart = (id) => {
         <!-- СЕТКА ТОВАРОВ -->
         <div v-else-if="products.data && products.data.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <div v-for="product in products.data" :key="product.id" class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col">
+                <!-- Изображение товара -->
+                <Link :href="`/products/${product.slug}`" class="block mb-3">
+                    <div class="bg-gray-50 rounded-xl h-40 flex items-center justify-center overflow-hidden">
+                        <img v-if="product.image" :src="`/storage/${product.image}`" :alt="product.name" class="max-h-full object-contain" />
+                        <svg v-else class="w-12 h-12 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                </Link>
+
                 <div class="flex-grow">
-                    <h2 class="font-bold text-slate-800 leading-tight mb-1">
-                        {{ product.name }}
-                    </h2>
+                    <Link :href="`/products/${product.slug}`" class="block">
+                        <h2 class="font-bold text-slate-800 leading-tight mb-1 hover:text-blue-600 transition-colors">
+                            {{ product.name }}
+                        </h2>
+                    </Link>
                     <p class="text-xs uppercase tracking-wider text-gray-400 mb-4">
                         {{ product.brand?.name }} • {{ product.category?.name }}
                     </p>
@@ -116,14 +136,24 @@ const addToCart = (id) => {
                         </span>
                     </div>
 
-                    <button
-                        @click="addToCart(product.id)"
-                        :disabled="(!product.stock && !product.in_stock) || addingId === product.id"
-                        class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold hover:bg-blue-600 transition-colors disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed flex justify-center items-center gap-2"
-                    >
-                        <span v-if="addingId === product.id" class="animate-pulse">Добавление...</span>
-                        <span v-else>В корзину</span>
-                    </button>
+                    <div class="flex gap-2">
+                        <button
+                            @click="addToCart(product.id)"
+                            :disabled="(!product.stock && !product.in_stock) || addingId === product.id"
+                            class="flex-1 bg-slate-900 text-white py-3 rounded-xl font-bold hover:bg-blue-600 transition-colors disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+                        >
+                            <span v-if="addingId === product.id" class="animate-pulse">Добавление...</span>
+                            <span v-else>В корзину</span>
+                        </button>
+                        <button
+                            v-if="page.props.auth?.user"
+                            @click="toggleWishlist(product.id)"
+                            class="px-3 py-3 rounded-xl border transition-colors"
+                            :class="isInWishlist(product.id) ? 'bg-red-50 border-red-200 text-red-500' : 'border-gray-200 text-gray-300 hover:text-red-400 hover:border-red-200'"
+                        >
+                            &#9829;
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

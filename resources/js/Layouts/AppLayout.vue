@@ -50,13 +50,14 @@ const logout = () => {
                         Каталог
                     </Link>
 
-                    <Link
-                        v-if="page.props.auth?.user?.role === 'admin'"
-                        href="/admin/orders"
-                        class="font-medium text-slate-600 hover:text-blue-600 transition-colors"
-                    >
-                        Админка
-                    </Link>
+                    <template v-if="page.props.auth?.user?.role === 'admin'">
+                        <Link href="/admin/orders" class="font-medium text-slate-600 hover:text-blue-600 transition-colors">
+                            Заказы
+                        </Link>
+                        <Link href="/admin/products" class="font-medium text-slate-600 hover:text-blue-600 transition-colors">
+                            Товары
+                        </Link>
+                    </template>
 
                     <Link href="/cart" class="relative group flex items-center gap-1">
                         <span class="text-xl">&#128722;</span>
@@ -68,6 +69,12 @@ const logout = () => {
                     </Link>
 
                     <div v-if="page.props.auth?.user" class="flex items-center gap-4 ml-2 pl-4 border-l border-gray-200">
+                        <Link href="/wishlist" class="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">
+                            &#9829; Избранное
+                        </Link>
+                        <Link href="/orders" class="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">
+                            Мои заказы
+                        </Link>
                         <span class="text-sm text-gray-500">{{ page.props.auth.user.name }}</span>
                         <button
                             @click="logout"

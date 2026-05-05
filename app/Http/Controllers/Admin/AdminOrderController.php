@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers\Admin;
 
-use Inertia\Inertia;
+use App\Actions\Order\UpdateOrderStatusAction;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use Illuminate\Http\Request;
-use App\Actions\Order\UpdateOrderStatusAction;
+use Inertia\Inertia;
 
-class AdminOrderController
+class AdminOrderController extends Controller
 {
     public function index(Request $request)
     {
-        // ИСПРАВЛЕНО: Добавлен with('user') или те связи, которые вы выводите в таблице
-        // Также добавлена фильтрация, чтобы поиск в Index.vue работал
         $orders = Order::query()
-            ->with(['items']) // Загружаем связи заранее одним запросом
+            ->with('items')
             ->when($request->search, function ($query, $search) {
                 $query->where('customer_name', 'like', "%{$search}%")
                     ->orWhere('phone', 'like', "%{$search}%");
@@ -24,21 +24,20 @@ class AdminOrderController
             })
             ->latest()
             ->paginate(10)
-            ->withQueryString(); // Сохраняет фильтры при переходе по страницам
+            ->withQueryString();
 
         return Inertia::render('Admin/Orders/Index', [
-            'orders' => $orders,
-            'filters' => $request->only(['search', 'status']) // Передаем фильтры обратно в Vue
+            'orders'  => OrderResource::collection($orders),
+            'filters' => $request->only(['search', 'status']),
         ]);
     }
 
     public function show(Order $order)
     {
-        // Здесь всё верно: load() используется для загрузки связей конкретной модели
         $order->load('items');
 
         return Inertia::render('Admin/Orders/Show', [
-            'order' => $order
+            'order' => (new OrderResource($order))->resolve(),
         ]);
     }
 

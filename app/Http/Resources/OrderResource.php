@@ -10,22 +10,19 @@ class OrderResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
-
+            'id'            => $this->id,
             'customer_name' => $this->customer_name,
-            'phone' => $this->phone,
+            'phone'         => $this->phone,
+            'address'       => $this->address,
+            'total'         => (float) $this->total,
+            'status'        => $this->status,
+            'created_at'    => $this->created_at->format('d.m.Y H:i'),
 
-            'total' => (float) $this->total,
-            'status' => $this->status,
-
-            'created_at' => $this->created_at->format('d.m.Y H:i'),
-
-            // товары (только если загружены)
             'items' => $this->whenLoaded('items', function () {
                 return $this->items->map(fn ($item) => [
-                    'id' => $item->id,
-                    'name' => $item->name,
-                    'price' => (float) $item->price,
+                    'id'       => $item->id,
+                    'name'     => $item->name,
+                    'price'    => (float) $item->price,
                     'quantity' => $item->quantity,
                 ]);
             }),

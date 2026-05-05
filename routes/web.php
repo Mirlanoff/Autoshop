@@ -6,19 +6,16 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 /*
-
 |--------------------------------------------------------------------------
 | ПУБЛИЧНЫЕ МАРШРУТЫ (Витрина магазина)
 |--------------------------------------------------------------------------
 */
 
-// Теперь ГЛАВНАЯ страница — это каталог товаров
 Route::get('/', [ProductController::class, 'index'])->name('products.index');
+Route::get('/products/{product:slug}', [ProductController::class, 'show'])->name('products.show');
 
-// Группа маршрутов корзины
 Route::prefix('cart')->controller(CartController::class)->group(function () {
     Route::get('/', 'index')->name('cart.index');
     Route::post('/add', 'add')->name('cart.add');
@@ -27,30 +24,27 @@ Route::prefix('cart')->controller(CartController::class)->group(function () {
 });
 
 /*
-
 |--------------------------------------------------------------------------
 | ЛИЧНЫЙ КАБИНЕТ (Только для авторизованных)
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {
-
-    // Оформление заказа
     Route::get('/checkout', [OrderController::class, 'create'])->name('checkout.create');
     Route::post('/checkout', [OrderController::class, 'store'])->name('checkout.store');
 
-    // Профиль (оставляем от Breeze)
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Dashboard (можно оставить или убрать)
     Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
+        return redirect()->route('products.index');
     })->name('dashboard');
 });
 
 /*
-
 |--------------------------------------------------------------------------
 | АДМИН-ПАНЕЛЬ (Только для админов)
 |--------------------------------------------------------------------------
@@ -61,5 +55,4 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
 });
 
-// Стандартные маршруты авторизации Breeze (login, register, logout)
 require __DIR__.'/auth.php';

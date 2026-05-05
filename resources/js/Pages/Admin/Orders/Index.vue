@@ -1,117 +1,128 @@
 <script setup>
-import { router } from '@inertiajs/vue3'
+import { router, Link } from '@inertiajs/vue3'
 import { reactive, watch } from 'vue'
 import debounce from 'lodash/debounce'
-import AppLayout from '@/Layouts/AppLayout.vue' // Добавь макет, если он нужен
+import AppLayout from '@/Layouts/AppLayout.vue'
 
-// Определяем макет (если используешь общую админку)
 defineOptions({ layout: AppLayout })
 
 const props = defineProps({
     orders: Object,
-    filters: Object
+    filters: Object,
 })
 
 const form = reactive({
-    search: props.filters.search || '',
-    status: props.filters.status || ''
+    search: props.filters?.search || '',
+    status: props.filters?.status || '',
 })
 
-// Применяем фильтры с задержкой для поиска
-const apply = debounce(() => {
+const applyFilters = debounce(() => {
     router.get('/admin/orders', form, {
         preserveState: true,
         replace: true,
-        preserveScroll: true
     })
 }, 300)
 
-// Для селектора статуса можно срабатывать мгновенно через watch или @change
+watch(() => form.status, () => applyFilters())
+
+const statusLabels = {
+    pending: 'Ожидает',
+    processing: 'В обработке',
+    completed: 'Выполнен',
+    cancelled: 'Отменён',
+}
+
+const statusColors = {
+    pending: 'bg-yellow-50 text-yellow-700',
+    processing: 'bg-blue-50 text-blue-700',
+    completed: 'bg-green-50 text-green-700',
+    cancelled: 'bg-red-50 text-red-700',
+}
 </script>
 
 <template>
-    <div class="max-w-6xl mx-auto p-6 font-sans">
-        <h1 class="text-2xl font-bold mb-6 text-slate-800">Управление заказами</h1>
+    <div class="max-w-7xl mx-auto p-6">
+        <h1 class="text-3xl font-black mb-8 text-slate-800">
+            Управление заказами
+        </h1>
 
-        <!-- 🔹 UI ФИЛЬТРОВ -->
-        <div class="flex gap-4 mb-6 bg-gray-50 p-4 rounded-xl border border-gray-100">
+        <!-- ФИЛЬТРЫ -->
+        <div class="flex flex-wrap gap-4 mb-8 bg-gray-50 p-4 rounded-2xl border border-gray-100">
             <input
                 v-model="form.search"
-                @input="apply"
-                placeholder="Поиск (имя или телефон)..."
-                class="flex-1 border border-gray-200 px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                @input="applyFilters"
+                type="text"
+                placeholder="Поиск по имени или телефону..."
+                class="flex-1 min-w-[200px] border border-gray-200 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
             />
-
-            <select
-                v-model="form.status"
-                @change="apply"
-                :class="form.status ? 'border-blue-500 ring-1 ring-blue-500' : 'border-gray-200'"
-                class="border px-4 py-2 rounded-lg bg-white outline-none cursor-pointer"
-            >
+            <select v-model="form.status" class="border border-gray-200 rounded-xl px-3 py-2 bg-white outline-none cursor-pointer">
                 <option value="">Все статусы</option>
-                <option value="pending">Ожидает (Pending)</option>
-                <option value="completed">Выполнен (Completed)</option>
-                <option value="cancelled">Отменен</option>
+                <option value="pending">Ожидает</option>
+                <option value="processing">В обработке</option>
+                <option value="completed">Выполнен</option>
+                <option value="cancelled">Отменён</option>
             </select>
         </div>
 
-        <!-- 📄 ТАБЛИЦА ЗАКАЗОВ -->
-        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-            <!-- Заголовок таблицы -->
-            <div class="grid grid-cols-5 bg-gray-50 p-4 text-xs font-bold uppercase tracking-wider text-gray-500 border-b">
-                <div>ID</div>
-                <div>Клиент</div>
-                <div>Телефон</div>
-                <div>Статус</div>
-                <div class="text-right">Действие</div>
-            </div>
+        <!-- ТАБЛИЦА -->
+        <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+            <table class="w-full">
+                <thead>
+                    <tr class="bg-gray-50 text-left text-sm text-gray-500 uppercase tracking-wider">
+                        <th class="px-6 py-4 font-bold">#</th>
+                        <th class="px-6 py-4 font-bold">Клиент</th>
+                        <th class="px-6 py-4 font-bold">Телефон</th>
+                        <th class="px-6 py-4 font-bold">Сумма</th>
+                        <th class="px-6 py-4 font-bold">Статус</th>
+                        <th class="px-6 py-4 font-bold">Дата</th>
+                        <th class="px-6 py-4 font-bold"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr
+                        v-for="order in orders.data"
+                        :key="order.id"
+                        class="border-t border-gray-50 hover:bg-gray-50 transition-colors"
+                    >
+                        <td class="px-6 py-4 font-bold text-slate-800">{{ order.id }}</td>
+                        <td class="px-6 py-4 text-slate-700">{{ order.customer_name }}</td>
+                        <td class="px-6 py-4 text-slate-600">{{ order.phone }}</td>
+                        <td class="px-6 py-4 font-bold text-slate-900">{{ order.total }} $</td>
+                        <td class="px-6 py-4">
+                            <span
+                                :class="statusColors[order.status] || 'bg-gray-50 text-gray-700'"
+                                class="text-xs font-bold uppercase px-3 py-1 rounded-full"
+                            >
+                                {{ statusLabels[order.status] || order.status }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500">{{ order.created_at }}</td>
+                        <td class="px-6 py-4">
+                            <Link
+                                :href="`/admin/orders/${order.id}`"
+                                class="text-blue-600 hover:text-blue-800 font-bold text-sm transition-colors"
+                            >
+                                Подробнее
+                            </Link>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
 
-            <!-- Строки заказов -->
-            <div v-if="orders.data.length > 0">
-                <div v-for="order in orders.data" :key="order.id" class="grid grid-cols-5 p-4 border-b last:border-0 items-center hover:bg-gray-50 transition-colors">
-                    <div class="font-mono text-sm text-gray-600">#{{ order.id }}</div>
-                    <div class="font-semibold text-slate-800">{{ order.customer_name }}</div>
-                    <div class="text-gray-600 text-sm">{{ order.phone }}</div>
-                    <div>
-                        <span
-                            class="px-2 py-1 rounded-md text-[10px] font-bold uppercase"
-                            :class="{
-                                'bg-yellow-50 text-yellow-600': order.status === 'pending',
-                                'bg-green-50 text-green-600': order.status === 'completed',
-                                'bg-red-50 text-red-600': order.status === 'cancelled'
-                            }"
-                        >
-                            {{ order.status }}
-                        </span>
-                    </div>
-                    <div class="text-right">
-                        <a :href="`/admin/orders/${order.id}`" class="text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors">
-                            Открыть →
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Если пусто -->
-            <div v-else class="p-10 text-center text-gray-400">
-                Заказов пока нет
+            <div v-if="!orders.data || orders.data.length === 0" class="text-center py-12 text-gray-400">
+                Заказов не найдено
             </div>
         </div>
 
-        <!-- 🔁 ПАГИНАЦИЯ -->
-        <div v-if="orders.links.length > 3" class="mt-6 flex justify-center gap-2">
-            <button
+        <!-- ПАГИНАЦИЯ -->
+        <div v-if="orders.links && orders.links.length > 3" class="flex justify-center gap-2 mt-8">
+            <Link
                 v-for="link in orders.links"
                 :key="link.label"
+                :href="link.url || '#'"
                 v-html="link.label"
-                @click="link.url && router.visit(link.url)"
-                :disabled="!link.url || link.active"
-                class="px-4 py-2 border rounded-lg text-sm transition-all"
-                :class="{
-                    'bg-blue-600 text-white border-blue-600': link.active,
-                    'bg-white text-gray-600 hover:bg-gray-50': !link.active && link.url,
-                    'opacity-30 cursor-not-allowed': !link.url
-                }"
+                class="px-4 py-2 rounded-xl text-sm font-bold transition-colors"
+                :class="link.active ? 'bg-slate-900 text-white' : 'bg-white border border-gray-200 text-slate-600 hover:bg-gray-50'"
             />
         </div>
     </div>

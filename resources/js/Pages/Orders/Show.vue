@@ -1,6 +1,5 @@
 <script setup>
-import { router, Link } from '@inertiajs/vue3'
-import { ref } from 'vue'
+import { Link } from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
 
 defineOptions({ layout: AppLayout })
@@ -8,16 +7,6 @@ defineOptions({ layout: AppLayout })
 const props = defineProps({
     order: Object,
 })
-
-const updating = ref(false)
-
-const updateStatus = (status) => {
-    updating.value = true
-    router.post(`/admin/orders/${props.order.id}/status`, { status }, {
-        preserveScroll: true,
-        onFinish: () => updating.value = false,
-    })
-}
 
 const statusLabels = {
     pending: 'Ожидает',
@@ -27,16 +16,16 @@ const statusLabels = {
 }
 
 const statusColors = {
-    pending: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-    processing: 'bg-blue-50 text-blue-700 border-blue-200',
-    completed: 'bg-green-50 text-green-700 border-green-200',
-    cancelled: 'bg-red-50 text-red-700 border-red-200',
+    pending: 'bg-yellow-50 text-yellow-700',
+    processing: 'bg-blue-50 text-blue-700',
+    completed: 'bg-green-50 text-green-700',
+    cancelled: 'bg-red-50 text-red-700',
 }
 </script>
 
 <template>
     <div class="max-w-4xl mx-auto p-6">
-        <Link href="/admin/orders" class="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6 transition-colors">
+        <Link href="/orders" class="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6 transition-colors">
             &larr; Назад к заказам
         </Link>
 
@@ -45,15 +34,15 @@ const statusColors = {
                 <h1 class="text-2xl font-black text-slate-800">Заказ #{{ order.id }}</h1>
                 <span
                     :class="statusColors[order.status] || 'bg-gray-50 text-gray-700'"
-                    class="text-sm font-bold uppercase px-4 py-2 rounded-full border"
+                    class="text-sm font-bold uppercase px-4 py-2 rounded-full"
                 >
                     {{ statusLabels[order.status] || order.status }}
                 </span>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm mb-6">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm mb-6">
                 <div>
-                    <span class="text-gray-500 block mb-1">Клиент</span>
+                    <span class="text-gray-500 block mb-1">Имя</span>
                     <span class="font-bold text-slate-800">{{ order.customer_name }}</span>
                 </div>
                 <div>
@@ -61,38 +50,14 @@ const statusColors = {
                     <span class="font-bold text-slate-800">{{ order.phone }}</span>
                 </div>
                 <div>
-                    <span class="text-gray-500 block mb-1">Сумма</span>
-                    <span class="font-bold text-slate-900 text-lg">{{ order.total }} $</span>
-                </div>
-                <div>
                     <span class="text-gray-500 block mb-1">Дата</span>
                     <span class="font-bold text-slate-800">{{ order.created_at }}</span>
                 </div>
             </div>
-
-            <!-- Смена статуса -->
-            <div class="border-t border-gray-100 pt-4">
-                <h3 class="text-sm font-bold text-gray-500 uppercase mb-3">Изменить статус</h3>
-                <div class="flex flex-wrap gap-2">
-                    <button
-                        v-for="(label, key) in statusLabels"
-                        :key="key"
-                        @click="updateStatus(key)"
-                        :disabled="order.status === key || updating"
-                        class="px-4 py-2 rounded-xl text-sm font-bold transition-colors border"
-                        :class="order.status === key
-                            ? 'bg-slate-900 text-white border-slate-900 cursor-default'
-                            : 'bg-white text-slate-600 border-gray-200 hover:bg-gray-50 disabled:opacity-50'"
-                    >
-                        {{ label }}
-                    </button>
-                </div>
-            </div>
         </div>
 
-        <!-- Товары -->
         <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
-            <h3 class="font-bold text-slate-800 mb-4">Товары в заказе</h3>
+            <h3 class="font-bold text-slate-800 mb-4">Товары</h3>
 
             <div class="space-y-3">
                 <div
@@ -102,7 +67,7 @@ const statusColors = {
                 >
                     <div>
                         <span class="font-bold text-slate-800">{{ item.name }}</span>
-                        <span class="text-gray-500 text-sm ml-2">{{ item.price }} $ x {{ item.quantity }}</span>
+                        <span class="text-gray-500 text-sm ml-2">× {{ item.quantity }}</span>
                     </div>
                     <span class="font-bold text-slate-900">{{ (item.price * item.quantity).toFixed(2) }} $</span>
                 </div>

@@ -1,248 +1,157 @@
-# 🚗 AutoParts Shop
+# AutoParts Shop
 
-Современный интернет-магазин автозапчастей, построенный на Laravel + Vue (Inertia) с упором на **чистую архитектуру и production-ready подход**.
+Современный интернет-магазин автозапчастей, построенный на **Laravel 13 + Vue 3 (Inertia.js)** с упором на чистую архитектуру и production-ready подход.
 
-> ⚡ Проект демонстрирует полный e-commerce flow: каталог, корзина, заказы, админка, очереди и деплой через Docker.
+## Функционал
 
----
+### Витрина
+- Каталог товаров с фильтрацией (поиск, бренд, категория)
+- Пагинация
+- Страница товара с описанием и похожими товарами
+- Адаптивный дизайн (mobile-first)
 
-## 🧠 О проекте
+### Корзина
+- Session-based корзина (без авторизации)
+- Изменение количества, удаление товаров
+- Подсчёт итоговой суммы
 
-Это не просто CRUD-приложение, а приближенная к реальности система:
+### Заказы
+- Оформление заказа (имя, телефон, адрес)
+- Автоматическое уменьшение остатков
+- История заказов пользователя
+- Email-уведомления через очередь
 
-* Каталог товаров с фильтрацией
-* Корзина (session-based)
-* Оформление заказов
-* Админ-панель
-* Уведомления через очередь
-* Оптимизация и кеширование
+### Админ-панель (`/admin/orders`)
+- Просмотр всех заказов
+- Фильтрация по статусу и поиск
+- Изменение статуса заказа (ожидает / в обработке / выполнен / отменён)
 
----
+### Авторизация
+- Регистрация / Вход (Laravel Breeze)
+- Роли: `user`, `admin`
+- Middleware защита админки
 
-## ⚙️ Технологии
+## Технологии
 
 ### Backend
-
-* Laravel 13
-* PHP 8.3
-* MySQL
+- **Laravel 13** (PHP 8.3)
+- MySQL 8.4
+- Queue (database driver)
+- SMTP email
 
 ### Frontend
+- **Vue 3** (Composition API)
+- **Inertia.js**
+- **Tailwind CSS**
 
-* Vue 3 (Composition API)
-* Inertia.js
-* Tailwind CSS
+### Архитектура
+- SOLID принципы
+- Action-based (Actions, DTOs, Resources)
+- Thin Controllers
+- Service Layer (CartService)
 
-### Инфраструктура
-
-* Docker (Nginx + PHP-FPM + MySQL)
-* Queue (database driver)
-* SMTP email
-
----
-
-## 🧱 Архитектура
-
-Проект построен с использованием:
-
-* SOLID принципов
-* Action-based архитектуры
-* DTO (Data Transfer Objects)
-* API Resources (трансформация данных)
-* Thin Controllers
-
-```bash
+```
 app/
- ├── Actions/
- ├── DTO/
- ├── Models/
- ├── Services/
- ├── Http/
- │    ├── Controllers/
- │    ├── Requests/
- │    └── Resources/
+├── Actions/         # Бизнес-логика
+├── DTO/             # Data Transfer Objects
+├── Services/        # Сервисы (CartService)
+├── Models/          # Eloquent модели
+├── Http/
+│   ├── Controllers/ # Тонкие контроллеры
+│   ├── Middleware/   # AdminMiddleware, Inertia
+│   ├── Requests/    # Form Requests (валидация)
+│   └── Resources/   # API Resources
+├── Jobs/            # Очереди (SendOrderNotification)
+└── Notifications/   # Email уведомления
 ```
 
----
+## Быстрый старт
 
-## 🚀 Запуск через Docker (рекомендуется)
-
-### 1. Клонировать проект
+### Docker (рекомендуется)
 
 ```bash
-git clone <your-repo>
-cd <project-folder>
-```
+git clone https://github.com/Mirlanoff/Autoshop.git
+cd Autoshop
 
----
-
-### 2. Запустить контейнеры
-
-```bash
+# Development (Laravel Sail)
+cp .env.example .env
 docker compose up -d --build
-```
-
----
-
-### 3. Зайти в контейнер
-
-```bash
 docker exec -it laravel_app bash
+composer install
+php artisan key:generate
+php artisan migrate --seed
+npm install && npm run build
 ```
 
----
+### Production
 
-### 4. Установить зависимости
+```bash
+cp .env.example .env
+# Настройте .env (DB, MAIL, APP_URL)
+docker compose -f docker-compose.prod.yml up -d --build
+docker exec -it autoshop-app-1 php artisan migrate --seed
+```
+
+### Локально (без Docker)
 
 ```bash
 composer install
 cp .env.example .env
 php artisan key:generate
-php artisan migrate
-
-npm install
-npm run build
-```
-
----
-
-### 5. Открыть проект
-
-```
-http://localhost:8000
-```
-
----
-
-## 💻 Локальный запуск (без Docker)
-
-```bash
-composer install
-cp .env.example .env
-php artisan key:generate
-php artisan migrate
+php artisan migrate --seed
 
 npm install
 npm run build
 php artisan serve
 ```
 
----
+Откройте: `http://localhost:8000`
 
-## 🔁 Очередь (Queue)
+## Тестовые данные
 
-Проект использует очередь для отправки уведомлений.
+После `php artisan db:seed`:
 
-### Запуск worker:
+| Роль  | Email           | Пароль   |
+|-------|-----------------|----------|
+| Admin | admin@test.com  | password |
+| User  | (5 случайных)   | password |
+
+- 40 товаров (реальные названия автозапчастей)
+- 10 брендов, 8 категорий
+
+## Структура страниц
+
+| URL                    | Описание              | Доступ      |
+|------------------------|-----------------------|-------------|
+| `/`                    | Каталог товаров       | Все         |
+| `/products/{slug}`     | Страница товара       | Все         |
+| `/cart`                | Корзина               | Все         |
+| `/checkout`            | Оформление заказа     | Auth        |
+| `/orders`              | История заказов       | Auth        |
+| `/orders/{id}`         | Детали заказа         | Auth (свой) |
+| `/admin/orders`        | Управление заказами   | Admin       |
+| `/admin/orders/{id}`   | Детали заказа (админ) | Admin       |
+| `/login`               | Вход                  | Guest       |
+| `/register`            | Регистрация           | Guest       |
+| `/profile`             | Профиль               | Auth        |
+
+## Очередь
 
 ```bash
 php artisan queue:work
 ```
 
-> ⚠️ В Docker worker запускается автоматически
+В Docker worker запускается автоматически.
 
----
+## Возможные улучшения
 
-## 📬 Email (SMTP)
+- Онлайн-оплата (Stripe / Элсом)
+- Redis + Laravel Horizon
+- API для мобильного приложения
+- Поиск по OEM-номерам
+- Загрузка изображений товаров
+- Расширенная аналитика в админке
 
-Настрой в `.env`:
+## Автор
 
-```env
-MAIL_MAILER=smtp
-MAIL_HOST=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USERNAME=your@email.com
-MAIL_PASSWORD=app_password
-MAIL_ENCRYPTION=tls
-MAIL_FROM_ADDRESS=your@email.com
-```
-
----
-
-## 🔐 Авторизация и роли
-
-* Laravel Breeze
-* Роли: `user`, `admin`
-* Middleware защита админки
-
----
-
-## 🧑‍💻 Админка
-
-Доступ:
-
-```
-/admin/orders
-```
-
-Функционал:
-
-* просмотр заказов
-* фильтрация
-* изменение статуса
-
----
-
-## 🛒 Основной функционал
-
-### Каталог
-
-* фильтрация (поиск, бренд, категория)
-* пагинация
-
-### Корзина
-
-* session-based
-* добавление / удаление товаров
-
-### Заказы
-
-* оформление
-* транзакции
-* Order + OrderItems
-
----
-
-## ⚡ Оптимизация
-
-* индексы БД
-* eager loading
-* кеширование (каталог, бренды, категории)
-* минимизация payload
-
----
-
-## 🧪 Тестовый доступ
-
-Админ можно создать через:
-
-```bash
-php artisan tinker
-```
-
-```php
-$user = \App\Models\User::first();
-$user->role = 'admin';
-$user->save();
-```
-
----
-
-## 📌 Возможные улучшения
-
-* 💳 Онлайн-оплата (Stripe)
-* ⚡ Redis + Horizon
-* 📦 API для мобильного приложения
-* 🧑‍💼 Расширенная админка
-
----
-
-## 👨‍💻 Автор
-
-Проект создан как практическая демонстрация архитектурного подхода к Laravel разработке.
-
----
-
-## ⭐ Поддержка
-
-Если проект был полезен — поставь звезду ⭐
+Проект создан как практическая демонстрация архитектурного подхода к Laravel-разработке.

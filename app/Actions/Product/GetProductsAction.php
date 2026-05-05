@@ -12,7 +12,7 @@ class GetProductsAction
     {
         $products = Product::query()
             // 1. Ограничиваем выборку полей самого продукта (только то, что нужно для карточки)
-            ->select(['id', 'name', 'price', 'brand_id', 'category_id', 'stock'])
+            ->select(['id', 'name', 'slug', 'price', 'brand_id', 'category_id', 'stock'])
 
             // 2. Ограничиваем поля в связанных таблицах (избегаем N+1 и лишних данных)
             ->with([

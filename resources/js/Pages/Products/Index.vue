@@ -132,5 +132,22 @@ const addToCart = (id) => {
         <div v-else class="text-center py-20 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200 text-gray-400">
             Ничего не найдено по вашему запросу
         </div>
+
+        <!-- ПАГИНАЦИЯ -->
+        <div v-if="products.links && products.links.length > 3" class="mt-8 flex justify-center gap-2">
+            <button
+                v-for="link in products.links"
+                :key="link.label"
+                v-html="link.label"
+                @click="link.url && router.visit(link.url)"
+                :disabled="!link.url || link.active"
+                class="px-4 py-2 border rounded-xl text-sm transition-all"
+                :class="{
+                    'bg-slate-900 text-white border-slate-900': link.active,
+                    'bg-white text-gray-600 hover:bg-gray-50 border-gray-200': !link.active && link.url,
+                    'opacity-30 cursor-not-allowed border-gray-100': !link.url
+                }"
+            />
+        </div>
     </div>
 </template>

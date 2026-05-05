@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;use App\Models\Brand;
+use Illuminate\Database\Seeder;
+use App\Models\Brand;
 use Illuminate\Support\Str;
 
 class BrandSeeder extends Seeder
@@ -13,8 +13,14 @@ class BrandSeeder extends Seeder
         $brands = [
             'Toyota',
             'BMW',
-            'Mercedes',
+            'Mercedes-Benz',
             'Audi',
+            'Volkswagen',
+            'Hyundai',
+            'Kia',
+            'Nissan',
+            'Honda',
+            'Ford',
         ];
 
         foreach ($brands as $name) {
